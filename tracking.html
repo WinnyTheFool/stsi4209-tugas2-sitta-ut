@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tracking Delivery Order - SITTA UT</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <!-- Vue.js v2 CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/vue@2.7.16/dist/vue.js"></script>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body class="bg-slate-50 text-slate-800 min-h-screen flex flex-col">
+    <div id="app" class="flex flex-col min-h-screen">
+        <!-- Navbar -->
+        <header class="bg-blue-900 text-white shadow-md">
+            <div class="max-w-6xl mx-auto px-4 py-4 flex justify-between items-center">
+                <div class="flex items-center space-x-3">
+                    <span class="text-2xl">🚚</span>
+                    <div>
+                        <h1 class="font-bold text-lg">SITTA - Universitas Terbuka</h1>
+                        <p class="text-xs text-blue-200">Tracking Delivery Order (DO)</p>
+                    </div>
+                </div>
+                <nav class="space-x-4">
+                    <a href="index.html" class="hover:bg-blue-800 px-3 py-2 rounded text-sm font-medium transition">Beranda</a>
+                    <a href="stok.html" class="hover:bg-blue-800 px-3 py-2 rounded text-sm font-medium transition">Manajemen Stok</a>
+                    <a href="tracking.html" class="bg-blue-700 px-3 py-2 rounded text-sm font-medium">Tracking DO</a>
+                </nav>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <main class="flex-grow max-w-6xl mx-auto px-4 py-8 w-full">
+            <div class="flex justify-between items-center mb-6">
+                <div>
+                    <h2 class="text-2xl font-bold text-blue-900">Pelacakan & Buat Delivery Order (DO)</h2>
+                    <p class="text-sm text-slate-500">Buat DO baru dan pantau status perjalanan pengiriman bahan ajar.</p>
+                </div>
+                <button @click="showCreateModal = true" class="bg-emerald-600 hover:bg-emerald-700 text-white font-medium px-4 py-2 rounded-lg text-sm shadow transition">
+                    + Buat DO Baru
+                </button>
+            </div>
+
+            <!-- Search DO Box -->
+            <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200 mb-6">
+                <label class="block text-sm font-semibold text-slate-700 mb-2">Cari Nomor DO (Delivery Order)</label>
+                <div class="flex gap-3">
+                    <input type="text" v-model="searchDoId" placeholder="Cth: DO2025-0001" class="flex-grow border border-slate-300 rounded-lg p-2.5 text-sm focus:ring-2 focus:ring-blue-500 outline-none">
+                    <button @click="searchDo" class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2.5 rounded-lg text-sm font-medium transition">Cari Resi</button>
+                </div>
+            </div>
+
+            <!-- Tracking Result Display -->
+            <div v-if="activeTracking" class="bg-white rounded-xl shadow-sm border border-slate-200 p-6 mb-6">
+                <div class="flex justify-between items-start border-b border-slate-200 pb-4 mb-4">
+                    <div>
+                        <span class="text-xs font-bold text-blue-600 bg-blue-50 px-2.5 py-1 rounded">{{ currentDoKey }}</span>
+                        <h3 class="text-xl font-bold text-slate-800 mt-1">{{ activeTracking.nama }} (NIM: {{ activeTracking.nim }})</h3>
+                        <p class="text-xs text-slate-500 mt-0.5">Tanggal Kirim: {{ activeTracking.tanggalKirim }} | Ekspedisi: {{ activeTracking.ekspedisi }}</p>
+                    </div>
+                    <div class="text-right">
+                        <span class="bg-emerald-100 text-emerald-800 px-3 py-1 rounded-full text-xs font-bold">📦 {{ activeTracking.status }}</span>
+                        <p class="text-sm font-bold text-slate-700 mt-2">Total: Rp {{ activeTracking.total.toLocaleString('id-ID') }}</p>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                    <div>
+                        <h4 class="text-xs font-bold uppercase text-slate-500 mb-2">Paket Dipesan</h4>
+                        <div class="bg-slate-50 p-3 rounded-lg border border-slate-200 text-sm">
+                            <p class="font-semibold text-blue-900">{{ activeTracking.paket }}</p>
+                            <p class="text-xs text-slate-600 mt-1">Isi Modul: <span class="font-medium text-slate-800">{{ getPaketDetail(activeTracking.paket) }}</span></p>
+                        </div>
+                    </div>
+                    <div>
+                        <h4 class="text-xs font-bold uppercase text-slate-500 mb-2">Timeline Perjalanan</h4>
+                        <div class="space-y-3 border-l-2 border-blue-200 pl-4 ml-2">
+                            <div v-for="(p, idx) in activeTracking.perjalanan" :key="idx" class="relative">
+                                <div class="absolute -left-[21px] top-1 w-2.5 h-2.5 rounded-full bg-blue-600 ring-4 ring-white"></div>
+                                <p class="text-xs font-mono text-slate-400">{{ p.waktu }}</p>
+                                <p class="text-sm font-medium text-slate-700">{{ p.keterangan }}</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- All Tracking List -->
+            <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+                <div class="p-4 bg-slate-100 border-b border-slate-200 font-bold text-sm text-slate-700">
+                    Daftar Seluruh Delivery Order (DO)
+                </div>
+                <table class="w-full text-left border-collapse">
+                    <thead>
+                        <tr class="border-b border-slate-200 text-xs font-bold text-slate-600 uppercase">
+                            <th class="p-3">No. DO</th>
+                            <th class="p-3">NIM / Nama</th>
+                            <th class="p-3">Paket</th>
+                            <th class="p-3">Ekspedisi</th>
+                            <th class="p-3">Tgl Kirim</th>
+                            <th class="p-3 text-right">Total (Rp)</th>
+                            <th class="p-3 text-center">Status</th>
+                            <th class="p-3 text-center">Aksi</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-200 text-sm">
+                        <tr v-for="(data, key) in tracking" :key="key" class="hover:bg-slate-50 transition">
+                            <td class="p-3 font-mono font-semibold text-blue-900">{{ key }}</td>
+                            <td class="p-3 font-medium">{{ data.nama }} <span class="text-xs text-slate-400">({{ data.nim }})</span></td>
+                            <td class="p-3 text-xs font-mono">{{ data.paket }}</td>
+                            <td class="p-3">{{ data.ekspedisi }}</td>
+                            <td class="p-3 text-xs">{{ data.tanggalKirim }}</td>
+                            <td class="p-3 text-right font-mono">{{ data.total.toLocaleString('id-ID') }}</td>
+                            <td class="p-3 text-center">
+                                <span class="bg-blue-100 text-blue-800 px-2.5 py-1 rounded-full text-xs font-semibold">{{ data.status }}</span>
+                            </td>
+                            <td class="p-3 text-center">
+                                <button @click="selectTracking(key)" class="text-blue-600 hover:text-blue-800 text-xs font-medium">Lihat Detail</button>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </main>
+
+        <!-- Modal Buat DO Baru -->
+        <div v-if="showCreateModal" class="fixed inset-0 bg-slate-900/50 flex items-center justify-center p-4 z-50">
+            <div class="bg-white rounded-xl shadow-xl max-w-md w-full p-6">
+                <h3 class="text-lg font-bold text-blue-900 mb-4">Buat Delivery Order (DO) Baru</h3>
+                <form @submit.prevent="createDo" class="space-y-4">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600 mb-1">Nomor DO (Auto / Manual)</label>
+                        <input type="text" v-model="newDoForm.doId" required class="w-full border border-slate-300 rounded-lg p-2 text-sm font-mono bg-slate-50">
+                    </div>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-600 mb-1">NIM Mahasiswa</label>
+                            <input type="text" v-model="newDoForm.nim" required placeholder="012345678" class="w-full border border-slate-300 rounded-lg p-2 text-sm">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-600 mb-1">Nama Mahasiswa</label>
+                            <input type="text" v-model="newDoForm.nama" required placeholder="Nama Lengkap" class="w-full border border-slate-300 rounded-lg p-2 text-sm">
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-600 mb-1">Pilih Paket Bahan Ajar</label>
+                            <select v-model="newDoForm.paket" required class="w-full border border-slate-300 rounded-lg p-2 text-sm">
+                                <option v-for="p in paket" :value="p.kode">{{ p.nama }} (Rp {{ p.harga.toLocaleString('id-ID') }})</option>
+                            </select>
+                            <p class="text-xs text-blue-700 bg-blue-50 p-2 rounded mt-1 border border-blue-100">
+                                📚 Isi Modul Paket: <span class="font-semibold">{{ getPaketDetail(newDoForm.paket) }}</span>
+                            </p>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-600 mb-1">Ekspedisi</label>
+                            <select v-model="newDoForm.ekspedisi" required class="w-full border border-slate-300 rounded-lg p-2 text-sm">
+                                <option value="JNE">JNE Reguler</option>
+                                <option value="SiCepat">SiCepat Ekspres</option>
+                                <option value="POS Indonesia">POS Indonesia</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600 mb-1">Total Harga Otomatis (Rp)</label>
+                        <input type="text" :value="calculatedTotal.toLocaleString('id-ID')" disabled class="w-full border border-slate-300 rounded-lg p-2 text-sm font-mono bg-slate-100 font-bold text-blue-900">
+                    </div>
+                    <div class="flex justify-end gap-3 mt-6">
+                        <button type="button" @click="showCreateModal = false" class="bg-slate-200 hover:bg-slate-300 text-slate-700 px-4 py-2 rounded-lg text-sm font-medium">Batal</button>
+                        <button type="submit" class="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-lg text-sm font-medium">Simpan DO</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <footer class="bg-slate-900 text-slate-400 text-center py-4 text-xs mt-auto">
+            &copy; 2025/2026 Universitas Terbuka • Tugas 2 STSI4209 Web Programming
+        </footer>
+    </div>
+
+    <!-- Load tracking-app.js -->
+    <script src="js/tracking-app.js"></script>
+</body>
+</html>

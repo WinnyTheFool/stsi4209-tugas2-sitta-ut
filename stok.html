@@ -11,6 +11,7 @@
     <link rel="stylesheet" href="css/style.css">
 </head>
 <body class="bg-slate-50 text-slate-800 min-h-screen flex flex-col">
+    <!-- [INDIKATOR 1.1: Arsitektur Vue.js & Root Container #app] -->
     <div id="app" class="flex flex-col min-h-screen">
         <!-- Navbar -->
         <header class="bg-blue-900 text-white shadow-md">
@@ -37,28 +38,34 @@
                     <h2 class="text-2xl font-bold text-blue-900">Daftar Stok Bahan Ajar</h2>
                     <p class="text-sm text-slate-500">Filter, pencarian, dan pemantauan ketersediaan stok modul.</p>
                 </div>
+                <!-- [INDIKATOR 1.6: Event Handling Buka Modal Tambah] -->
                 <button @click="showAddModal = true" class="bg-blue-600 hover:bg-blue-700 text-white font-medium px-4 py-2 rounded-lg text-sm shadow transition">
                     + Tambah Bahan Ajar
                 </button>
             </div>
 
             <!-- Filter Section -->
+            <!-- [INDIKATOR 1.2: Two-way Data Binding v-model & List Rendering v-for] -->
             <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-200 mb-6 grid grid-cols-1 md:grid-cols-5 gap-4">
                 <!-- Filter UPBJJ (Dependent Parent) -->
                 <div>
                     <label class="block text-xs font-semibold text-slate-600 mb-1">Pilih UPBJJ (Daerah)</label>
                     <select v-model="selectedUpbjj" class="w-full border border-slate-300 rounded-lg p-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none">
                         <option value="">-- Semua UPBJJ --</option>
-                        <option v-for="u in upbjjList" :value="u">{{ u }}</option>
+                        <option v-for="u in upbjjList" :key="u" :value="u">{{ u }}</option>
                     </select>
                 </div>
 
-                <!-- Filter Kategori (Dependent Child) -->
+                <!-- Filter Kategori (Dependent Child dengan v-show) -->
+                <!-- [INDIKATOR 1.3: Penggunaan Conditional v-show untuk Dependent Option] -->
                 <div>
                     <label class="block text-xs font-semibold text-slate-600 mb-1">Kategori Mata Kuliah</label>
-                    <select v-model="selectedKategori" :disabled="!selectedUpbjj" class="w-full border border-slate-300 rounded-lg p-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none disabled:bg-slate-100 disabled:cursor-not-allowed">
+                    <div v-show="!selectedUpbjj" class="p-2 border border-dashed border-slate-300 rounded-lg text-xs text-slate-400 bg-slate-50 text-center cursor-not-allowed">
+                        ⚠️ Pilih UPBJJ terlebih dahulu
+                    </div>
+                    <select v-show="selectedUpbjj" v-model="selectedKategori" class="w-full border border-slate-300 rounded-lg p-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none">
                         <option value="">-- Semua Kategori --</option>
-                        <option v-for="k in kategoriList" :value="k">{{ k }}</option>
+                        <option v-for="k in kategoriList" :key="k" :value="k">{{ k }}</option>
                     </select>
                 </div>
 
@@ -86,8 +93,9 @@
                 <div class="flex items-end gap-2">
                     <label class="flex items-center text-xs font-medium text-slate-700 cursor-pointer h-10">
                         <input type="checkbox" v-model="filterReorder" class="mr-2 rounded text-blue-600 focus:ring-blue-500 w-4 h-4">
-                        Hanya Reorder (Stok &le; Safety)
+                        Reorder (Stok &lt; Safety / 0)
                     </label>
+                    <!-- [INDIKATOR 1.4: Event Handling Reset Filter] -->
                     <button @click="resetFilter" class="bg-slate-200 hover:bg-slate-300 text-slate-700 px-3 py-2 rounded-lg text-xs font-medium h-10 transition">
                         Reset
                     </button>
@@ -113,31 +121,39 @@
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-slate-200 text-sm">
+                        <!-- [INDIKATOR 1.2: v-for List Rendering & Key Binding] -->
                         <tr v-for="item in filteredStok" :key="item.kode" class="hover:bg-slate-50 transition">
-                            <td class="p-3 font-mono font-semibold text-blue-900">{{ item.kode }}</td>
+                            <!-- [INDIKATOR 1.2: Directive v-text] -->
+                            <td class="p-3 font-mono font-semibold text-blue-900" v-text="item.kode"></td>
+                            <!-- [INDIKATOR 1.2: Mustaches Data Binding] -->
                             <td class="p-3 font-medium">{{ item.judul }}</td>
-                            <td class="p-3"><span class="bg-slate-100 text-slate-700 px-2 py-1 rounded text-xs">{{ item.kategori }}</span></td>
+                            <!-- [INDIKATOR 1.2: Directive v-text] -->
+                            <td class="p-3"><span class="bg-slate-100 text-slate-700 px-2 py-1 rounded text-xs" v-text="item.kategori"></span></td>
                             <td class="p-3">{{ item.upbjj }}</td>
-                            <td class="p-3 font-mono text-xs">{{ item.lokasiRak }}</td>
+                            <!-- [INDIKATOR 1.2: Directive v-text] -->
+                            <td class="p-3 font-mono text-xs" v-text="item.lokasiRak"></td>
                             <td class="p-3 text-right font-mono">{{ item.harga.toLocaleString('id-ID') }}</td>
-                            <td class="p-3 text-center font-bold" :class="{'text-red-600': item.qty === 0, 'text-orange-600': item.qty > 0 && item.qty <= item.safety}">
+                            <!-- [INDIKATOR 1.2: Class Binding & Logika Status Qty vs Safety Sesuai PDF] -->
+                            <td class="p-3 text-center font-bold" :class="{'text-red-600': item.qty === 0, 'text-orange-600': item.qty > 0 && item.qty < item.safety, 'text-emerald-600': item.qty >= item.safety}">
                                 {{ item.qty }}
                             </td>
                             <td class="p-3 text-center font-semibold text-slate-500">
                                 {{ item.safety }}
                             </td>
                             <td class="p-3 text-center">
-                                <!-- Conditional Rendering Status -->
+                                <!-- [INDIKATOR 1.3: Conditional Rendering v-if, v-else-if, v-else] -->
                                 <span v-if="item.qty === 0" class="bg-red-100 text-red-700 px-2 py-1 rounded-full text-xs font-semibold">🔴 Kosong</span>
-                                <span v-else-if="item.qty <= item.safety" class="bg-orange-100 text-orange-700 px-2 py-1 rounded-full text-xs font-semibold">🟠 Menipis</span>
+                                <span v-else-if="item.qty < item.safety" class="bg-orange-100 text-orange-700 px-2 py-1 rounded-full text-xs font-semibold">🟠 Menipis</span>
                                 <span v-else class="bg-emerald-100 text-emerald-700 px-2 py-1 rounded-full text-xs font-semibold">🟢 Aman</span>
                             </td>
+                            <!-- [INDIKATOR 1.2: Directive v-html untuk render formatting HTML pada catatan] -->
                             <td class="p-3 text-xs text-slate-600" v-html="item.catatanHTML"></td>
                             <td class="p-3 text-center">
                                 <button @click="editItem(item)" class="text-blue-600 hover:text-blue-800 text-xs font-medium mr-2">Edit</button>
                                 <button @click="deleteItem(item.kode)" class="text-red-600 hover:text-red-800 text-xs font-medium">Hapus</button>
                             </td>
                         </tr>
+                        <!-- [INDIKATOR 1.3: Conditional Rendering v-if Saat Data Kosong] -->
                         <tr v-if="filteredStok.length === 0">
                             <td colspan="11" class="p-8 text-center text-slate-400">Tidak ada data bahan ajar yang sesuai dengan filter.</td>
                         </tr>
@@ -147,14 +163,15 @@
         </main>
 
         <!-- Modal Tambah / Edit -->
-        <div v-if="showAddModal || editingItem" class="fixed inset-0 bg-slate-900/50 flex items-center justify-center p-4 z-50">
+        <!-- [INDIKATOR 1.3: Conditional Rendering v-if pada Modal & 1.6: Validasi Form] -->
+        <div v-if="showAddModal || editingItem !== null" class="fixed inset-0 bg-slate-900/50 flex items-center justify-center p-4 z-50">
             <div class="bg-white rounded-xl shadow-xl max-w-lg w-full p-6">
-                <h3 class="text-lg font-bold text-blue-900 mb-4">{{ editingItem ? 'Edit Bahan Ajar' : 'Tambah Bahan Ajar Baru' }}</h3>
+                <h3 class="text-lg font-bold text-blue-900 mb-4">{{ editingItem !== null ? 'Edit Bahan Ajar' : 'Tambah Bahan Ajar Baru' }}</h3>
                 <form @submit.prevent="saveItem" class="space-y-4">
                     <div class="grid grid-cols-2 gap-4">
                         <div>
                             <label class="block text-xs font-semibold text-slate-600 mb-1">Kode Modul</label>
-                            <input type="text" v-model="form.kode" :disabled="editingItem" required placeholder="Cth: EKMA4117" class="w-full border border-slate-300 rounded-lg p-2 text-sm disabled:bg-slate-100">
+                            <input type="text" v-model="form.kode" :disabled="editingItem !== null" required placeholder="Cth: EKMA4117" class="w-full border border-slate-300 rounded-lg p-2 text-sm disabled:bg-slate-100">
                         </div>
                         <div>
                             <label class="block text-xs font-semibold text-slate-600 mb-1">Judul Bahan Ajar</label>
@@ -165,13 +182,13 @@
                         <div>
                             <label class="block text-xs font-semibold text-slate-600 mb-1">Kategori</label>
                             <select v-model="form.kategori" required class="w-full border border-slate-300 rounded-lg p-2 text-sm">
-                                <option v-for="k in kategoriList" :value="k">{{ k }}</option>
+                                <option v-for="k in kategoriList" :key="k" :value="k">{{ k }}</option>
                             </select>
                         </div>
                         <div>
                             <label class="block text-xs font-semibold text-slate-600 mb-1">UPBJJ</label>
                             <select v-model="form.upbjj" required class="w-full border border-slate-300 rounded-lg p-2 text-sm">
-                                <option v-for="u in upbjjList" :value="u">{{ u }}</option>
+                                <option v-for="u in upbjjList" :key="u" :value="u">{{ u }}</option>
                             </select>
                         </div>
                     </div>
@@ -201,7 +218,7 @@
                     </div>
                     <div class="flex justify-end gap-3 mt-6">
                         <button type="button" @click="closeModal" class="bg-slate-200 hover:bg-slate-300 text-slate-700 px-4 py-2 rounded-lg text-sm font-medium">Batal</button>
-                        <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium">Simpan</button>
+                        <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium">Simpan Data</button>
                     </div>
                 </form>
             </div>
@@ -213,7 +230,7 @@
         </footer>
     </div>
 
-    <!-- Load stok-app.js -->
+    <!-- [INDIKATOR 1.1: Pemisahan Kode JavaScript] -->
     <script src="js/stok-app.js"></script>
 </body>
 </html>

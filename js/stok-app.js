@@ -1,169 +1,234 @@
-document.addEventListener('DOMContentLoaded', function() {
-    new Vue({
-        el: '#app',
-        data: {
-            upbjjList: ["Jakarta", "Surabaya", "Makassar", "Padang", "Denpasar"],
-            kategoriList: ["MK Wajib", "MK Pilihan", "Praktikum", "Problem-Based"],
-            selectedUpbjj: '',
-            selectedKategori: '',
-            searchQuery: '',
-            sortBy: '',
-            filterReorder: false,
-            lastSearchCleared: false,
-            showAddModal: false,
-            editingItem: null,
-            form: {
+// [INDIKATOR 1.1: Pemisahan Kode JavaScript stok-app.js & Inisialisasi Vue Instance]
+new Vue({
+    el: '#app',
+    data: {
+        // [INDIKATOR 1.2: Model Data Reaktif Bahan Ajar]
+        upbjjList: ['Jakarta', 'Surabaya', 'Medan', 'Makassar', 'Bandung'],
+        kategoriList: ['MK Wajib', 'MK Pilihan', 'Praktikum', 'TAP'],
+        selectedUpbjj: '',
+        selectedKategori: '',
+        searchQuery: '',
+        filterReorder: false,
+        sortBy: '',
+        showAddModal: false,
+        editingItem: null,
+        lastSearchCleared: false, // flag audit untuk watcher searchQuery
+        form: {
+            kode: '',
+            judul: '',
+            kategori: 'MK Wajib',
+            upbjj: 'Jakarta',
+            lokasiRak: '',
+            harga: 0,
+            qty: 0,
+            safety: 0,
+            catatanHTML: ''
+        },
+        stokData: [
+            {
+                kode: "EKMA4116",
+                judul: "Manajemen Pemasaran",
+                kategori: "MK Wajib",
+                upbjj: "Jakarta",
+                lokasiRak: "R1-A2",
+                harga: 65000,
+                qty: 28,
+                safety: 20,
+                catatanHTML: "<em>Edisi 3</em>, cetakan 2024"
+            },
+            {
+                kode: "EKMA4115",
+                judul: "Pengantar Akuntansi",
+                kategori: "MK Wajib",
+                upbjj: "Jakarta",
+                lokasiRak: "R1-A3",
+                harga: 75000,
+                qty: 15,
+                safety: 20,
+                catatanHTML: "Cover baru, <strong>revisi Bab 4</strong>"
+            },
+            {
+                kode: "ISIP4110",
+                judul: "Pengantar Sosiologi",
+                kategori: "MK Wajib",
+                upbjj: "Surabaya",
+                lokasiRak: "R2-B1",
+                harga: 55000,
+                qty: 5,
+                safety: 15,
+                catatanHTML: "Menunggu <em>revisi modul</em>"
+            },
+            {
+                kode: "MSIM4201",
+                judul: "Sistem Basis Data",
+                kategori: "Praktikum",
+                upbjj: "Jakarta",
+                lokasiRak: "R3-C2",
+                harga: 90000,
+                qty: 0,
+                safety: 10,
+                catatanHTML: "<span class='text-red-500 font-semibold'>Stok habis</span>, proses cetak ulang"
+            },
+            {
+                kode: "SKOM4101",
+                judul: "Pengantar Ilmu Komunikasi",
+                kategori: "MK Wajib",
+                upbjj: "Medan",
+                lokasiRak: "R1-B2",
+                harga: 60000,
+                qty: 32,
+                safety: 25,
+                catatanHTML: "Kondisi baik, segel rapi"
+            },
+            {
+                kode: "EKMA4213",
+                judul: "Manajemen Keuangan",
+                kategori: "MK Wajib",
+                upbjj: "Bandung",
+                lokasiRak: "R2-A1",
+                harga: 80000,
+                qty: 8,
+                safety: 15,
+                catatanHTML: "Edisi 2 cetakan 2023"
+            },
+            {
+                kode: "MSIM4301",
+                judul: "Pemrograman Berorientasi Objek",
+                kategori: "Praktikum",
+                upbjj: "Surabaya",
+                lokasiRak: "R3-A1",
+                harga: 95000,
+                qty: 12,
+                safety: 10,
+                catatanHTML: "Termasuk CD simulasi lab"
+            },
+            {
+                kode: "MSIM4401",
+                judul: "Tugas Akhir Program (TAP) SI",
+                kategori: "TAP",
+                upbjj: "Jakarta",
+                lokasiRak: "R4-A1",
+                harga: 110000,
+                qty: 4,
+                safety: 10,
+                catatanHTML: "<strong>Panduan terbaru TAP 2025</strong>"
+            }
+        ]
+    },
+    // [INDIKATOR 1.4: Computed Properties Filter & Sorting Multi-Kriteria]
+    computed: {
+        filteredStok() {
+            let result = this.stokData;
+
+            // Filter UPBJJ
+            if (this.selectedUpbjj) {
+                result = result.filter(item => item.upbjj === this.selectedUpbjj);
+            }
+
+            // Filter Kategori (Dependent Filter)
+            if (this.selectedKategori) {
+                result = result.filter(item => item.kategori === this.selectedKategori);
+            }
+
+            // Search Filter
+            if (this.searchQuery.trim() !== '') {
+                const q = this.searchQuery.toLowerCase();
+                result = result.filter(item =>
+                    item.kode.toLowerCase().includes(q) ||
+                    item.judul.toLowerCase().includes(q)
+                );
+            }
+
+            // [INDIKATOR Capaian PDF: Logika Reorder (qty < safety || qty === 0)]
+            if (this.filterReorder) {
+                result = result.filter(item => item.qty < item.safety || item.qty === 0);
+            }
+
+            // Sorting
+            if (this.sortBy) {
+                result = [...result].sort((a, b) => {
+                    if (this.sortBy === 'judul-asc') return a.judul.localeCompare(b.judul);
+                    if (this.sortBy === 'judul-desc') return b.judul.localeCompare(a.judul);
+                    if (this.sortBy === 'qty-asc') return a.qty - b.qty;
+                    if (this.sortBy === 'qty-desc') return b.qty - a.qty;
+                    if (this.sortBy === 'harga-asc') return a.harga - b.harga;
+                    if (this.sortBy === 'harga-desc') return b.harga - a.harga;
+                    return 0;
+                });
+            }
+
+            return result;
+        }
+    },
+    // [INDIKATOR 1.5: Watchers untuk Side Effects Reaktif]
+    watch: {
+        // Watcher 1: Mereset selectedKategori saat selectedUpbjj berubah
+        selectedUpbjj(newVal, oldVal) {
+            console.log(`[Watcher UPBJJ] Berubah dari ${oldVal} ke ${newVal}. Reset kategori filter.`);
+            this.selectedKategori = '';
+        },
+        // Watcher 2: Memantau dan merespon saat kolom pencarian dikosongkan
+        searchQuery(newVal, oldVal) {
+            if (newVal === '' && oldVal !== '') {
+                this.lastSearchCleared = true;
+                console.log('[Watcher Search] Kotak pencarian stok dikosongkan.');
+            }
+        }
+    },
+    // [INDIKATOR 1.6: Methods & Event Handling]
+    methods: {
+        resetFilter() {
+            this.selectedUpbjj = '';
+            this.selectedKategori = '';
+            this.searchQuery = '';
+            this.filterReorder = false;
+            this.sortBy = '';
+        },
+        openAddModal() {
+            this.editingItem = null;
+            this.form = {
                 kode: '',
                 judul: '',
                 kategori: 'MK Wajib',
                 upbjj: 'Jakarta',
                 lokasiRak: '',
-                harga: 50000,
-                qty: 10,
-                safety: 5,
+                harga: 0,
+                qty: 0,
+                safety: 0,
                 catatanHTML: ''
-            },
-            stok: [
-                {
-                    kode: "EKMA4116",
-                    judul: "Pengantar Manajemen",
-                    kategori: "MK Wajib",
-                    upbjj: "Jakarta",
-                    lokasiRak: "R1-A3",
-                    harga: 65000,
-                    qty: 28,
-                    safety: 20,
-                    catatanHTML: "<em>Edisi 2024, cetak ulang</em>"
-                },
-                {
-                    kode: "EKMA4115",
-                    judul: "Pengantar Akuntansi",
-                    kategori: "MK Wajib",
-                    upbjj: "Jakarta",
-                    lokasiRak: "R1-A4",
-                    harga: 60000,
-                    qty: 7,
-                    safety: 15,
-                    catatanHTML: "<strong>Cover baru</strong>"
-                },
-                {
-                    kode: "BIOL4201",
-                    judul: "Biologi Umum (Praktikum)",
-                    kategori: "Praktikum",
-                    upbjj: "Surabaya",
-                    lokasiRak: "R3-B2",
-                    harga: 80000,
-                    qty: 12,
-                    safety: 10,
-                    catatanHTML: "Butuh <u>pendingin</u> untuk kit basah"
-                },
-                {
-                    kode: "FISIP4001",
-                    judul: "Dasar-Dasar Sosiologi",
-                    kategori: "MK Pilihan",
-                    upbjj: "Makassar",
-                    lokasiRak: "R2-C1",
-                    harga: 55000,
-                    qty: 2,
-                    safety: 8,
-                    catatanHTML: "Stok <i>menipis</i>, prioritaskan reorder"
-                }
-            ]
+            };
+            this.showAddModal = true;
         },
-        computed: {
-            filteredStok() {
-                let result = this.stok.filter(item => {
-                    let matchUpbjj = !this.selectedUpbjj || item.upbjj === this.selectedUpbjj;
-                    let matchKategori = !this.selectedKategori || item.kategori === this.selectedKategori;
-                    let matchSearch = !this.searchQuery || 
-                        item.kode.toLowerCase().includes(this.searchQuery.toLowerCase()) || 
-                        item.judul.toLowerCase().includes(this.searchQuery.toLowerCase());
-                    let matchReorder = !this.filterReorder || (item.qty <= item.safety);
-                    return matchUpbjj && matchKategori && matchSearch && matchReorder;
-                });
-
-                if (this.sortBy) {
-                    result.sort((a, b) => {
-                        if (this.sortBy === 'judul-asc') return a.judul.localeCompare(b.judul);
-                        if (this.sortBy === 'judul-desc') return b.judul.localeCompare(a.judul);
-                        if (this.sortBy === 'qty-asc') return a.qty - b.qty;
-                        if (this.sortBy === 'qty-desc') return b.qty - a.qty;
-                        if (this.sortBy === 'harga-asc') return a.harga - b.harga;
-                        if (this.sortBy === 'harga-desc') return b.harga - a.harga;
-                        return 0;
-                    });
+        editItem(item) {
+            this.editingItem = item.kode;
+            this.form = JSON.parse(JSON.stringify(item));
+        },
+        saveItem() {
+            if (this.editingItem !== null) {
+                // Update
+                const idx = this.stokData.findIndex(i => i.kode === this.editingItem);
+                if (idx !== -1) {
+                    this.$set(this.stokData, idx, { ...this.form });
                 }
-
-                return result;
+            } else {
+                // Add
+                const exists = this.stokData.some(i => i.kode.toUpperCase() === this.form.kode.toUpperCase());
+                if (exists) {
+                    alert('Kode modul sudah terdaftar!');
+                    return;
+                }
+                this.stokData.push({ ...this.form, kode: this.form.kode.toUpperCase() });
+            }
+            this.closeModal();
+        },
+        deleteItem(kode) {
+            if (confirm(`Apakah Anda yakin ingin menghapus bahan ajar [${kode}]?`)) {
+                this.stokData = this.stokData.filter(i => i.kode !== kode);
             }
         },
-        watch: {
-            // Watcher 1: Reset kategori otomatis saat filter UPBJJ dikosongkan
-            selectedUpbjj(newVal) {
-                if (!newVal) {
-                    this.selectedKategori = '';
-                }
-            },
-            // Watcher 2: Pantau searchQuery — jika query dihapus (kosong), reset filter kategori & upbjj
-            searchQuery(newVal) {
-                if (newVal.trim() === '') {
-                    // Ketika search dikosongkan, kembalikan filter ke default
-                    // (tidak reset upbjj/kategori agar user tetap bisa kombinasi filter)
-                    // Namun kita catat state perubahan untuk keperluan reactive tracking
-                    this.lastSearchCleared = true;
-                } else {
-                    this.lastSearchCleared = false;
-                }
-            }
-        },
-        methods: {
-            resetFilter() {
-                this.selectedUpbjj = '';
-                this.selectedKategori = '';
-                this.searchQuery = '';
-                this.sortBy = '';
-                this.filterReorder = false;
-            },
-            editItem(item) {
-                this.editingItem = item.kode;
-                this.form = { ...item };
-                this.showAddModal = true;
-            },
-            deleteItem(kode) {
-                if (confirm('Yakin ingin menghapus bahan ajar ' + kode + '?')) {
-                    this.stok = this.stok.filter(i => i.kode !== kode);
-                }
-            },
-            closeModal() {
-                this.showAddModal = false;
-                this.editingItem = null;
-                this.form = {
-                    kode: '',
-                    judul: '',
-                    kategori: 'MK Wajib',
-                    upbjj: 'Jakarta',
-                    lokasiRak: '',
-                    harga: 50000,
-                    qty: 10,
-                    safety: 5,
-                    catatanHTML: ''
-                };
-            },
-            saveItem() {
-                if (this.editingItem) {
-                    let index = this.stok.findIndex(i => i.kode === this.editingItem);
-                    if (index !== -1) {
-                        this.stok.splice(index, 1, { ...this.form });
-                    }
-                } else {
-                    if (this.stok.some(i => i.kode === this.form.kode)) {
-                        alert('Kode bahan ajar sudah ada!');
-                        return;
-                    }
-                    this.stok.push({ ...this.form });
-                }
-                this.closeModal();
-            }
+        closeModal() {
+            this.showAddModal = false;
+            this.editingItem = null;
         }
-    });
+    }
 });

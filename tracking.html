@@ -156,9 +156,7 @@
                         <div>
                             <label class="block text-xs font-semibold text-slate-600 mb-1">Ekspedisi</label>
                             <select v-model="newDoForm.ekspedisi" required class="w-full border border-slate-300 rounded-lg p-2 text-sm">
-                                <option value="JNE">JNE Reguler</option>
-                                <option value="SiCepat">SiCepat Ekspres</option>
-                                <option value="POS Indonesia">POS Indonesia</option>
+                                <option v-for="eks in pengirimanList" :key="eks.kode" :value="eks.kode">{{ eks.nama }}</option>
                             </select>
                         </div>
                     </div>

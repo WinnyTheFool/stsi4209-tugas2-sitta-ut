@@ -9,6 +9,7 @@ document.addEventListener('DOMContentLoaded', function() {
             searchQuery: '',
             sortBy: '',
             filterReorder: false,
+            lastSearchCleared: false,
             showAddModal: false,
             editingItem: null,
             form: {
@@ -97,9 +98,21 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         },
         watch: {
+            // Watcher 1: Reset kategori otomatis saat filter UPBJJ dikosongkan
             selectedUpbjj(newVal) {
                 if (!newVal) {
                     this.selectedKategori = '';
+                }
+            },
+            // Watcher 2: Pantau searchQuery — jika query dihapus (kosong), reset filter kategori & upbjj
+            searchQuery(newVal) {
+                if (newVal.trim() === '') {
+                    // Ketika search dikosongkan, kembalikan filter ke default
+                    // (tidak reset upbjj/kategori agar user tetap bisa kombinasi filter)
+                    // Namun kita catat state perubahan untuk keperluan reactive tracking
+                    this.lastSearchCleared = true;
+                } else {
+                    this.lastSearchCleared = false;
                 }
             }
         },

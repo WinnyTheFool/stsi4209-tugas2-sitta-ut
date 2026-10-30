@@ -3,6 +3,10 @@ document.addEventListener('DOMContentLoaded', function() {
         el: '#app',
         data: {
             upbjjList: ["Jakarta", "Surabaya", "Makassar", "Padang", "Denpasar"],
+            pengirimanList: [
+                { kode: "REG", nama: "JNE Reguler (3-5 hari)" },
+                { kode: "EXP", nama: "JNE Ekspres (1-2 hari)" }
+            ],
             paket: [
                 { kode: "PAKET-UT-001", nama: "PAKET IPS Dasar", isi: ["EKMA4116","EKMA4115"], harga: 120000 },
                 { kode: "PAKET-UT-002", nama: "PAKET IPA Dasar", isi: ["BIOL4201","FISIP4001"], harga: 140000 }
@@ -27,12 +31,13 @@ document.addEventListener('DOMContentLoaded', function() {
             currentDoKey: "DO2025-0001",
             activeTracking: null,
             showCreateModal: false,
+            selectedPaketPreview: 'PAKET IPS Dasar — Rp 120.000',
             newDoForm: {
-                doId: 'DO2025-0002',
+                doId: 'DO2025-002',
                 nim: '',
                 nama: '',
                 paket: 'PAKET-UT-001',
-                ekspedisi: 'JNE'
+                ekspedisi: 'REG'
             }
         },
         created() {
@@ -42,6 +47,13 @@ document.addEventListener('DOMContentLoaded', function() {
             calculatedTotal() {
                 let found = this.paket.find(p => p.kode === this.newDoForm.paket);
                 return found ? found.harga : 0;
+            }
+        },
+        watch: {
+            // Watcher: Pantau perubahan paket yang dipilih, auto-update preview total harga
+            'newDoForm.paket'(newPaket) {
+                let found = this.paket.find(p => p.kode === newPaket);
+                this.selectedPaketPreview = found ? found.nama + ' — Rp ' + found.harga.toLocaleString('id-ID') : '';
             }
         },
         methods: {
@@ -87,14 +99,14 @@ document.addEventListener('DOMContentLoaded', function() {
                 this.activeTracking = this.tracking[id];
                 this.showCreateModal = false;
                 
-                // Reset form & generate next ID
+                // Reset form & generate next ID (3 digit sequence sesuai PDF)
                 let nextIdx = Object.keys(this.tracking).length + 1;
                 this.newDoForm = {
-                    doId: 'DO2025-' + String(nextIdx).padStart(4, '0'),
+                    doId: 'DO' + new Date().getFullYear() + '-' + String(nextIdx).padStart(3, '0'),
                     nim: '',
                     nama: '',
                     paket: 'PAKET-UT-001',
-                    ekspedisi: 'JNE'
+                    ekspedisi: 'REG'
                 };
                 alert('Delivery Order berhasil dibuat!');
             }

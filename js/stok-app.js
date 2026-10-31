@@ -2,9 +2,9 @@
 new Vue({
     el: '#app',
     data: {
-        // [INDIKATOR 1.2: Model Data Reaktif Bahan Ajar]
-        upbjjList: ['Jakarta', 'Surabaya', 'Medan', 'Makassar', 'Bandung'],
-        kategoriList: ['MK Wajib', 'MK Pilihan', 'Praktikum', 'TAP'],
+        // [INDIKATOR 1.2: Model Data Reaktif Bahan Ajar Sesuai Presisi dataBahanAjar.js Resmi UT]
+        upbjjList: ["Jakarta", "Surabaya", "Makassar", "Padang", "Denpasar"],
+        kategoriList: ["MK Wajib", "MK Pilihan", "Praktikum", "Problem-Based"],
         selectedUpbjj: '',
         selectedKategori: '',
         searchQuery: '',
@@ -27,91 +27,47 @@ new Vue({
         stokData: [
             {
                 kode: "EKMA4116",
-                judul: "Manajemen Pemasaran",
+                judul: "Pengantar Manajemen",
                 kategori: "MK Wajib",
                 upbjj: "Jakarta",
-                lokasiRak: "R1-A2",
+                lokasiRak: "R1-A3",
                 harga: 65000,
                 qty: 28,
                 safety: 20,
-                catatanHTML: "<em>Edisi 3</em>, cetakan 2024"
+                catatanHTML: "<em>Edisi 2024, cetak ulang</em>"
             },
             {
                 kode: "EKMA4115",
                 judul: "Pengantar Akuntansi",
                 kategori: "MK Wajib",
                 upbjj: "Jakarta",
-                lokasiRak: "R1-A3",
-                harga: 75000,
-                qty: 15,
-                safety: 20,
-                catatanHTML: "Cover baru, <strong>revisi Bab 4</strong>"
-            },
-            {
-                kode: "ISIP4110",
-                judul: "Pengantar Sosiologi",
-                kategori: "MK Wajib",
-                upbjj: "Surabaya",
-                lokasiRak: "R2-B1",
-                harga: 55000,
-                qty: 5,
-                safety: 15,
-                catatanHTML: "Menunggu <em>revisi modul</em>"
-            },
-            {
-                kode: "MSIM4201",
-                judul: "Sistem Basis Data",
-                kategori: "Praktikum",
-                upbjj: "Jakarta",
-                lokasiRak: "R3-C2",
-                harga: 90000,
-                qty: 0,
-                safety: 10,
-                catatanHTML: "<span class='text-red-500 font-semibold'>Stok habis</span>, proses cetak ulang"
-            },
-            {
-                kode: "SKOM4101",
-                judul: "Pengantar Ilmu Komunikasi",
-                kategori: "MK Wajib",
-                upbjj: "Medan",
-                lokasiRak: "R1-B2",
+                lokasiRak: "R1-A4",
                 harga: 60000,
-                qty: 32,
-                safety: 25,
-                catatanHTML: "Kondisi baik, segel rapi"
-            },
-            {
-                kode: "EKMA4213",
-                judul: "Manajemen Keuangan",
-                kategori: "MK Wajib",
-                upbjj: "Bandung",
-                lokasiRak: "R2-A1",
-                harga: 80000,
-                qty: 8,
+                qty: 7,
                 safety: 15,
-                catatanHTML: "Edisi 2 cetakan 2023"
+                catatanHTML: "<strong>Cover baru</strong>"
             },
             {
-                kode: "MSIM4301",
-                judul: "Pemrograman Berorientasi Objek",
+                kode: "BIOL4201",
+                judul: "Biologi Umum (Praktikum)",
                 kategori: "Praktikum",
                 upbjj: "Surabaya",
-                lokasiRak: "R3-A1",
-                harga: 95000,
+                lokasiRak: "R3-B2",
+                harga: 80000,
                 qty: 12,
                 safety: 10,
-                catatanHTML: "Termasuk CD simulasi lab"
+                catatanHTML: "Butuh <u>pendingin</u> untuk kit basah"
             },
             {
-                kode: "MSIM4401",
-                judul: "Tugas Akhir Program (TAP) SI",
-                kategori: "TAP",
-                upbjj: "Jakarta",
-                lokasiRak: "R4-A1",
-                harga: 110000,
-                qty: 4,
-                safety: 10,
-                catatanHTML: "<strong>Panduan terbaru TAP 2025</strong>"
+                kode: "FISIP4001",
+                judul: "Dasar-Dasar Sosiologi",
+                kategori: "MK Pilihan",
+                upbjj: "Makassar",
+                lokasiRak: "R2-C1",
+                harga: 55000,
+                qty: 2,
+                safety: 8,
+                catatanHTML: "Stok <i>menipis</i>, prioritaskan reorder"
             }
         ]
     },
